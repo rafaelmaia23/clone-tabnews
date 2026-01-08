@@ -1,0 +1,10 @@
+{
+  ".env*": "npx --no-install secretlint",
+
+  "**/*.{js,ts,tsx,jsx,json,yml,yaml,md,txt}": [
+    "npx --no-install secretlint",
+    "prettier --write"
+  ],
+
+  "**/*.{js,ts,tsx,jsx}": "eslint --max-warnings=0"
+}
