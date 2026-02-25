@@ -133,5 +133,29 @@ describe("POST /api/v1/users", () => {
         status_code: 400,
       });
     });
+
+    test("With undefined 'password'", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "semSenha",
+          email: "semSenha@example.com",
+        }),
+      });
+
+      expect(response.status).toBe(400);
+
+      const responseBody = await response.json();
+
+      expect(responseBody).toEqual({
+        name: "ValidationError",
+        message: "A senha de um usuário não pode estar em branco.",
+        action: "Informe uma senha para criar um usuário.",
+        status_code: 400,
+      });
+    });
   });
 });
