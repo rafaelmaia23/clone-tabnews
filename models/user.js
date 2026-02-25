@@ -36,6 +36,7 @@ async function findOneByUsername(username) {
 async function create(userInputValues) {
   await validateUniqueUsername(userInputValues.username);
   await validadeUniqueEmail(userInputValues.email);
+  await validatePassword(userInputValues.password);
   await hashPasswordInObject(userInputValues);
 
   const newUser = await runInsertQuery(userInputValues);
@@ -73,6 +74,7 @@ async function update(username, userInputValues) {
   }
 
   if ("password" in userInputValues) {
+    await validatePassword(userInputValues.password);
     await hashPasswordInObject(userInputValues);
   }
 
@@ -147,6 +149,15 @@ async function validadeUniqueEmail(email) {
     throw new ValidationError({
       message: "O email informado já está sendo utilizado.",
       action: "Utilize outro email para realizar esta operação.",
+    });
+  }
+}
+
+async function validatePassword(password) {
+  if (password === undefined || password === null || password.length === 0) {
+    throw new ValidationError({
+      message: "A senha de um usuário não pode estar em branco.",
+      action: "Informe uma senha para criar um usuário.",
     });
   }
 }
