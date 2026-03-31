@@ -10,11 +10,12 @@ import {
 } from "infra/errors.js";
 
 function onErrorHandler(err, req, res) {
-  if (
-    err instanceof ValidationError ||
-    err instanceof NotFoundError ||
-    err instanceof UnauthorizedError
-  ) {
+  if (err instanceof ValidationError || err instanceof NotFoundError) {
+    return res.status(err.statusCode).json(err);
+  }
+
+  if (err instanceof UnauthorizedError) {
+    clearSessionCookie(res);
     return res.status(err.statusCode).json(err);
   }
 
@@ -43,12 +44,24 @@ async function setSessionCookie(sessionToken, res) {
   res.setHeader("set-cookie", setCookie);
 }
 
+async function clearSessionCookie(res) {
+  const setCookie = cookie.serialize("session_id", "invalid", {
+    path: "/",
+    maxAge: -1,
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+  });
+
+  res.setHeader("set-cookie", setCookie);
+}
+
 const controller = {
   errorHandlers: {
     onNoMatch: onNoMatchHandler,
     onError: onErrorHandler,
   },
   setSessionCookie,
+  clearSessionCookie,
 };
 
 export default controller;
