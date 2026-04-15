@@ -1,3 +1,4 @@
+import activation from "models/activation";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -8,6 +9,8 @@ beforeAll(async () => {
 });
 
 describe("Use case: Registration flow (all successful)", () => {
+  let createUserResponseBody;
+
   test("Create user accont", async () => {
     const createUserResponse = await fetch(
       "http://localhost:3000/api/v1/users",
@@ -26,7 +29,7 @@ describe("Use case: Registration flow (all successful)", () => {
 
     expect(createUserResponse.status).toBe(201);
 
-    const createUserResponseBody = await createUserResponse.json();
+    createUserResponseBody = await createUserResponse.json();
 
     expect(createUserResponseBody).toEqual({
       id: createUserResponseBody.id,
@@ -39,8 +42,19 @@ describe("Use case: Registration flow (all successful)", () => {
     });
   });
 
-  // eslint-disable-next-line jest/expect-expect
-  test("Receive activation email", async () => {});
+  test("Receive activation email", async () => {
+    const lastEmail = await orchestrator.getLastEmail();
+
+    const activationToken = await activation.findOneByUserId(
+      createUserResponseBody.id,
+    );
+
+    expect(lastEmail.sender).toBe("<contato@tabnews.com.br>");
+    expect(lastEmail.recipients[0]).toBe("<registration.flow@example.com>");
+    expect(lastEmail.subject).toBe("Ative seu cadastro no Tabnews");
+    expect(lastEmail.text).toContain("RegistrationFlow");
+    expect(lastEmail.text).toContain(activationToken.id);
+  });
   // eslint-disable-next-line jest/expect-expect
   test("activate account", async () => {});
   // eslint-disable-next-line jest/expect-expect
