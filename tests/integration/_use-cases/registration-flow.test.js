@@ -1,5 +1,6 @@
 import webserver from "infra/webserver";
 import activation from "models/activation";
+import user from "models/user.js";
 import orchestrator from "tests/orchestrator";
 
 beforeAll(async () => {
@@ -11,6 +12,7 @@ beforeAll(async () => {
 
 describe("Use case: Registration flow (all successful)", () => {
   let createUserResponseBody;
+  let activationTokenId;
 
   test("Create user accont", async () => {
     const createUserResponse = await fetch(
@@ -51,7 +53,7 @@ describe("Use case: Registration flow (all successful)", () => {
     expect(lastEmail.subject).toBe("Ative seu cadastro no Tabnews");
     expect(lastEmail.text).toContain("RegistrationFlow");
 
-    const activationTokenId = await orchestrator.extractUUID(lastEmail.text);
+    activationTokenId = await orchestrator.extractUUID(lastEmail.text);
 
     expect(lastEmail.text).toContain(
       `${webserver.origin}/cadastro/ativar/${activationTokenId}`,
@@ -63,10 +65,28 @@ describe("Use case: Registration flow (all successful)", () => {
     expect(activationTokenObject.user_id).toBe(createUserResponseBody.id);
     expect(activationTokenObject.used_at).toBe(null);
   });
-  // eslint-disable-next-line jest/expect-expect
-  test("activate account", async () => {});
+
+  test("activate account", async () => {
+    const activationResponse = await fetch(
+      `http://localhost:3000/api/v1/activations/${activationTokenId}`,
+      {
+        method: "PATCH",
+      },
+    );
+
+    expect(activationResponse.status).toBe(200);
+
+    const activationResponseBody = await activationResponse.json();
+
+    expect(Date.parse(activationResponseBody.used_at)).not.toBeNaN();
+
+    const activatedUser = await user.findOneByUsername("RegistrationFlow");
+    expect(activatedUser.features).toEqual(["create:session"]);
+  });
+
   // eslint-disable-next-line jest/expect-expect
   test("Login", async () => {});
+
   // eslint-disable-next-line jest/expect-expect
   test("Get user information", async () => {});
 });
