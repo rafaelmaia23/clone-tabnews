@@ -85,7 +85,27 @@ describe("Use case: Registration flow (all successful)", () => {
   });
 
   // eslint-disable-next-line jest/expect-expect
-  test("Login", async () => {});
+  test("Login", async () => {
+    const createSessionsResponse = await fetch(
+      "http://localhost:3000/api/v1/sessions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "registration.flow@example.com",
+          password: "RegistrationFlowPassword",
+        }),
+      },
+    );
+
+    expect(createSessionsResponse.status).toBe(201);
+
+    const createSessionsResponseBody = await createSessionsResponse.json();
+
+    expect(createSessionsResponseBody.user_id).toBe(createUserResponseBody.id);
+  });
 
   // eslint-disable-next-line jest/expect-expect
   test("Get user information", async () => {});
