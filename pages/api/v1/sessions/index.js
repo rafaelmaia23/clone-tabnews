@@ -1,7 +1,7 @@
 import { createRouter } from "next-connect";
 import controller from "infra/controller.js";
 import authentication from "models/authentication.js";
-import authorization from "models/authorization";
+import authorization from "models/authorization.js";
 import session from "models/session.js";
 
 import { ForbiddenError } from "infra/errors";
@@ -33,7 +33,13 @@ async function postHandler(req, res) {
 
   controller.setSessionCookie(newSession.token, res);
 
-  return res.status(201).json(newSession);
+  const secureOutputValues = authorization.filterOutput(
+    authenticatedUser,
+    "read:session",
+    newSession,
+  );
+
+  return res.status(201).json(secureOutputValues);
 }
 
 async function deleteHandler(req, res) {
@@ -43,5 +49,11 @@ async function deleteHandler(req, res) {
   const expiredSession = await session.expireById(sessionObject.id);
   controller.clearSessionCookie(res);
 
-  return res.status(200).json(expiredSession);
+  const secureOutputValues = authorization.filterOutput(
+    req.context.user,
+    "read:session",
+    expiredSession,
+  );
+
+  return res.status(200).json(secureOutputValues);
 }

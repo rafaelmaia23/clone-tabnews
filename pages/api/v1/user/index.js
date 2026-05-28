@@ -1,6 +1,7 @@
 import controller from "infra/controller";
 import session from "models/session";
 import user from "models/user";
+import authorization from "models/authorization.js";
 
 const { createRouter } = require("next-connect");
 
@@ -24,5 +25,12 @@ async function getHandler(req, res) {
     "Cache-Control",
     "no-store, no-cache, max-age=0, must-revalidate",
   );
-  return res.status(200).json(userFound);
+
+  const secureOutputValues = authorization.filterOutput(
+    req.context.user,
+    "read:user:self",
+    userFound,
+  );
+
+  return res.status(200).json(secureOutputValues);
 }
