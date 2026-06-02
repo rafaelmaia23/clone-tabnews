@@ -66,7 +66,7 @@ async function findOneValidById(tokenId) {
 
 async function sendEmailToUser(user, activationToken) {
   await email.send({
-    from: "TabNews <contato@tabnews.com.br>",
+    from: "TabNews <contato@clone-tabnews.maiahub.com.br>",
     to: user.email,
     subject: "Ative seu cadastro no Tabnews",
     text: `Olá ${user.username},\n\nPara ativar seu cadastro, clique no link abaixo:\n\n${webserver.origin}/cadastro/ativar/${activationToken.id}\n\nAtenciosamente,\nEquipe TabNews`,
