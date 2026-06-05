@@ -3,12 +3,10 @@ import activation from "models/activation.js";
 import { createRouter } from "next-connect";
 import authorization from "models/authorization.js";
 
-const router = createRouter();
-
-router.use(controller.injectAnonymousOrUser);
-router.patch(controller.canRequest("read:activation_token"), patchHandler);
-
-export default router.handler(controller.errorHandlers);
+export default createRouter()
+  .use(controller.injectAnonymousOrUser)
+  .patch(controller.canRequest("read:activation_token"), patchHandler)
+  .handler(controller.errorHandlers);
 
 async function patchHandler(req, res) {
   const activationTokenId = req.query.token_id;

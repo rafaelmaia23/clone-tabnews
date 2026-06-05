@@ -5,12 +5,10 @@ import authorization from "models/authorization.js";
 
 const { createRouter } = require("next-connect");
 
-const router = createRouter();
-
-router.use(controller.injectAnonymousOrUser);
-router.get(controller.canRequest("read:session"), getHandler);
-
-export default router.handler(controller.errorHandlers);
+export default createRouter()
+  .use(controller.injectAnonymousOrUser)
+  .get(controller.canRequest("read:session"), getHandler)
+  .handler(controller.errorHandlers);
 
 async function getHandler(req, res) {
   const sessionToken = req.cookies.session_id;
