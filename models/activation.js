@@ -45,7 +45,6 @@ async function findOneValidById(tokenId) {
         WHERE
           id = $1
         AND expires_at > now()
-        AND used_at IS NULL
         LIMIT
           1
         `,
