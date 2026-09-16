@@ -14,6 +14,16 @@ async function patchHandler(req, res) {
   const validActivationToken =
     await activation.findOneValidById(activationTokenId);
 
+  if (validActivationToken.used_at) {
+    const secureOutputValues = authorization.filterOutput(
+      req.context.user,
+      "read:activation_token",
+      validActivationToken,
+    );
+
+    return res.status(200).json(secureOutputValues);
+  }
+
   await activation.activateUserByUserId(validActivationToken.user_id);
 
   const usedActivationToken =

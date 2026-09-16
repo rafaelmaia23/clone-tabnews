@@ -83,17 +83,45 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
         },
       );
 
-      expect(response2.status).toBe(404);
+      expect(response2.status).toBe(200);
 
       const response2Body = await response2.json();
 
       expect(response2Body).toEqual({
-        name: "NotFoundError",
-        message:
-          "O token de ativação utilizado não foi encontrado no sistema ou expirou.",
-        action: "Faça um novo cadastro.",
-        status_code: 404,
+        id: activationToken.id,
+        used_at: response2Body.used_at,
+        user_id: activationToken.user_id,
+        expires_at: activationToken.expires_at.toISOString(),
+        created_at: activationToken.created_at.toISOString(),
+        updated_at: response2Body.updated_at,
       });
+
+      expect(uuidVersion(response2Body.id)).toBe(4);
+      expect(uuidVersion(response2Body.user_id)).toBe(4);
+
+      expect(Date.parse(response2Body.expires_at)).not.toBeNaN();
+      expect(Date.parse(response2Body.created_at)).not.toBeNaN();
+      expect(Date.parse(response2Body.updated_at)).not.toBeNaN();
+      expect(response2Body.updated_at > response2Body.created_at).toBe(true);
+
+      const expiresAt = new Date(response2Body.expires_at);
+      const createdAt = new Date(response2Body.created_at);
+
+      expect(expiresAt >= createdAt).toBe(true);
+
+      const actualLifetimeInMilliseconds = expiresAt - createdAt;
+
+      const lifeTimeDifferenceInMilliseconds =
+        activation.EXPIRATION_IN_MILLISECONDS - actualLifetimeInMilliseconds;
+
+      expect(lifeTimeDifferenceInMilliseconds).toBeLessThanOrEqual(5000);
+
+      const activatedUser = await user.findOneById(response2Body.user_id);
+      expect(activatedUser.features).toEqual([
+        "create:session",
+        "read:session",
+        "update:user",
+      ]);
     });
 
     test("With valid token", async () => {
